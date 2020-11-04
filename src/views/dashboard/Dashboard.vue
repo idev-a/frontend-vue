@@ -190,7 +190,7 @@
       },
       async readData () {
         this.loading = true
-        const res = await Get('admin/read_sheet')
+        const res = await Get('admin/read')
         this.snackbar = true
         this.color = res.status
         this.message = res.message
