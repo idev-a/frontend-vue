@@ -58,9 +58,23 @@
             <span>Download Result</span>
           </v-tooltip>
         </div>
-        <div v-if="!is_new" class="mt-3">
+        <div v-if="!is_new" class="my-3">
           <div>{{message}}</div>
           <div class="mt-2">If you want to run the scraper again, please refresh the page.</div>
+        </div>
+
+        <div
+          v-if="showProgress"
+        >
+          <v-progress-linear 
+            v-model="curItem.progress"
+            class="mr-6" 
+            height="15" 
+            color="success" 
+          >
+            <strong>{{ Math.ceil(curItem.progress) }}%</strong>
+          </v-progress-linear>
+          <div class="mt-2"><v-icon>mdi-clock</v-icon> <small>Started At</small> {{curItem.started_at}}</div>
         </div>
       </v-card-text>
       <v-card-title>
@@ -124,6 +138,8 @@
         is_new: true,
         search: '',
         items: [],
+        curItem: { progress: 0 },
+        checkInterval: null,
         headers: [],
         file: null,
         rules: {
@@ -135,9 +151,13 @@
     },
 
     mounted () {
+      this.registerInterval()
     },
 
     computed: {
+      showProgress () {
+        return this.curItem.status != '' && this.curItem.progress > 0
+      },
       page() {
         return Number(localStorage.getItem('page')) || 5
       },
@@ -197,7 +217,17 @@
         this.items = res.items
         this.headers = res.headers
         this.loading = false
-      }
+      },
+      async readHistory () {
+        const res = await Get('admin/read/history')
+        if (res.status == 'success') {
+          this.curItem = res.item
+        }
+      },
+      registerInterval() {
+        const self = this
+        this.checkInterval = setInterval(function() { self.readHistory() }, 10000)
+      },
     },
   }
 </script>
